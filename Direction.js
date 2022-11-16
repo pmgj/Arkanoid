@@ -1,5 +1,4 @@
-/* Direção do movimento do jogador */
-export const Direction = Object.freeze({
+export default Object.freeze({
     LEFT: "LEFT",
     NONE: "NONE",
     RIGHT: "RIGHT"

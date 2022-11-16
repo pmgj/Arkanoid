@@ -1,4 +1,4 @@
-export const State = Object.freeze({
+export default Object.freeze({
     NONE: "NONE",
     LOST_LIVE: "LOST_LIVE",
     END_OF_STAGE: "END_OF_STAGE",

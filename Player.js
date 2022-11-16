@@ -1,32 +1,20 @@
-import {Cell} from "./Cell.js";
-import {Direction} from "./Direction.js";
+import Direction from "./Direction.js";
 import * as Global from "./Global.js";
 
-class Player {
+export default class Player {
     constructor(x, y, width, height, lives, speed = Global.PLAYER_SPEED) {
-        this.row = x;
-        this.col = y;
+        this.x = x;
+        this.y = y;
         this.width = width;
         this.height = height;
         this.lives = lives;
         this.speed = speed;
-        this.cells = [];
-        for (let i = 0; i < height; i++) {
-            let row = [];
-            for (let j = 0; j < width; j++) {
-                row.push(new Cell(x + i, y + j));
-            }
-            this.cells.push(row);
     }
+    getX() {
+        return this.x;
     }
-    getCells() {
-        return this.cells;
-    }
-    getRow() {
-        return this.row;
-    }
-    getCol() {
-        return this.col;
+    getY() {
+        return this.y;
     }
     getWidth() {
         return this.width;
@@ -41,15 +29,11 @@ class Player {
         this.lives--;
     }
     updatePosition(direction) {
-        let diff = this.cells[0][0].getY();
-        if (direction === Direction.LEFT && diff > 0) {
-            this.cells.flat().forEach(c => c.setY((diff > this.speed) ? c.getY() - this.speed : c.getY() - diff));
+        if (direction === Direction.LEFT && this.x > 0) {
+            this.x = this.x > this.speed ? this.x - this.speed : 0;
         }
-        diff = this.cells[0][this.width - 1].getY();
-        if (direction === Direction.RIGHT && diff < Global.COLS - 1) {
-            this.cells.flat().forEach(c => c.setY((diff + this.speed < Global.COLS - 1) ? c.getY() + this.speed : c.getY() + Global.COLS - 1 - diff));
+        if (direction === Direction.RIGHT && this.x + this.width < Global.COLS) {
+            this.x = (this.x + this.speed < Global.COLS) ? this.x + this.speed : Global.COLS;
         }
     }
 }
-
-export {Player};

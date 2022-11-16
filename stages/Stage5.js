@@ -1,5 +1,5 @@
-import {Brick} from "../Brick.js";
-import {TwoHitBrick} from "../TwoHitBrick.js";
+import Brick from "../Brick.js";
+import TwoHitBrick from "../TwoHitBrick.js";
 import * as Global from "../Global.js";
 
 export function get() {

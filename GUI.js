@@ -1,40 +1,34 @@
-import {Arkanoid} from "./Arkanoid.js";
-import {Direction} from "./Direction.js";
-import {CellState} from "./CellState.js";
+import { Arkanoid } from "./Arkanoid.js";
+import Direction from "./Direction.js";
 import * as Global from "./Global.js";
-import {State} from "./State.js";
+import State from "./State.js";
 
 function GUI() {
     let game = new Arkanoid(), ctx;
     let leftPressed = false, rightPressed = false;
     function resetCanvas() {
-        let canv = document.getElementById("canvas");
-        let SCREEN_WIDTH = Global.COLS * Global.UNIT_SIZE;
-        let SCREEN_HEIGHT = Global.ROWS * Global.UNIT_SIZE;
-        canv.setAttribute("width", SCREEN_WIDTH);
-        canv.setAttribute("height", SCREEN_HEIGHT);
-        ctx = canv.getContext("2d");
-        ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        ctx.clearRect(0, 0, Global.COLS, Global.ROWS);
         ctx.fillStyle = "black";
-        ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        ctx.fillRect(0, 0, Global.COLS, Global.ROWS);
     }
     function printMessage(message, size = 32, font = "Arial", color = "white") {
         ctx.font = `${size}px ${font}`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = color;
-        ctx.fillText(message, Global.COLS * Global.UNIT_SIZE * 0.5, Global.ROWS * Global.UNIT_SIZE * 0.5);
+        ctx.fillText(message, Global.COLS * 0.5, Global.ROWS * 0.5);
     }
     function printStageMessage(message, size = 32, font = "Arial", color = "white") {
         ctx.font = `${size}px ${font}`;
         ctx.textAlign = 'center';
         ctx.fillStyle = color;
-        ctx.fillText(message, Global.COLS * Global.UNIT_SIZE * 0.5, Global.ROWS * Global.UNIT_SIZE * 0.7);
+        ctx.fillText(message, Global.COLS * 0.5, Global.ROWS * 0.7);
     }
     function startScreen() {
+        resetCanvas();
         printMessage("Arkanoid", 40, "Arial", "yellow");
         ctx.font = `18px Arial`;
-        ctx.fillText("Press F1 to start", Global.COLS * Global.UNIT_SIZE * 0.5, Global.ROWS * Global.UNIT_SIZE * 0.5 + 40);
+        ctx.fillText("Press F1 to start", Global.COLS * 0.5, Global.ROWS * 0.5 + 40);
     }
     function startStageScreen() {
         resetCanvas();
@@ -76,9 +70,9 @@ function GUI() {
     }
     function show() {
         resetCanvas();
-        showBricks();
         showPlayer();
         showBall();
+        showBricks();
         showLives();
     }
     function startStage() {
@@ -109,11 +103,10 @@ function GUI() {
     function showPlayer() {
         // PLAYER
         let player = game.getPlayer();
-        let cell = player.getCells()[0][0];
-        let x = cell.getY() * Global.UNIT_SIZE;
-        let y = cell.getX() * Global.UNIT_SIZE;
-        let h = Global.UNIT_SIZE * player.getHeight();
-        let w = Global.UNIT_SIZE * player.getWidth();
+        let x = player.getX();
+        let y = player.getY();
+        let h = player.getHeight();
+        let w = player.getWidth();
         ctx.beginPath();
         ctx.arc(x, y + h / 2, h / 4, 1.5 * Math.PI, 0.5 * Math.PI, true);
         ctx.fillStyle = "aqua";
@@ -124,7 +117,7 @@ function GUI() {
         ctx.fillRect(x, y, Global.PLAYER_SIDESIZE, h);
         ctx.closePath();
         ctx.beginPath();
-        ctx.fillStyle = "gray";        
+        ctx.fillStyle = "gray";
         ctx.fillRect(x + Global.PLAYER_SIDESIZE, y, w - 2 * Global.PLAYER_SIDESIZE, h);
         ctx.closePath();
         ctx.beginPath();
@@ -139,12 +132,9 @@ function GUI() {
     }
     function showBall() {
         // BALL
-        let {x, y} = game.getBall().getCells()[0][0];
-        let radius = Global.UNIT_SIZE * game.getBall().getSize() / 2;
-        let cx = y * Global.UNIT_SIZE + radius;
-        let cy = x * Global.UNIT_SIZE + radius;
+        let ball = game.getBall();
         ctx.beginPath();
-        ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+        ctx.arc(ball.getX(), ball.getY(), ball.getSize(), 0, 2 * Math.PI);
         ctx.fillStyle = "aqua";
         ctx.strokeStyle = "white";
         ctx.lineWidth = 2;
@@ -156,12 +146,11 @@ function GUI() {
         // BRICKS
         let bricks = game.getBricks();
         for (let brick of bricks) {
-            let cells = brick.getCells().flat();
             ctx.beginPath();
             ctx.fillStyle = brick.getColor();
             ctx.strokeStyle = "black";
             ctx.lineWidth = Global.BRICK_SPACING;
-            ctx.fillRect(cells[0].getY() * Global.UNIT_SIZE, cells[0].getX() * Global.UNIT_SIZE, Global.UNIT_SIZE * Global.BRICK_WIDTH - Global.BRICK_SPACING, Global.UNIT_SIZE * Global.BRICK_HEIGHT - Global.BRICK_SPACING);
+            ctx.fillRect(brick.getX(), brick.getY(), Global.BRICK_WIDTH - Global.BRICK_SPACING, Global.BRICK_HEIGHT - Global.BRICK_SPACING);
             ctx.stroke();
             ctx.closePath();
         }
@@ -185,12 +174,15 @@ function GUI() {
         }
     }
     function registerEvents() {
-        resetCanvas();
+        let canv = document.getElementById("canvas");
+        canv.setAttribute("width", Global.COLS);
+        canv.setAttribute("height", Global.ROWS);
+        ctx = canv.getContext("2d");
         startScreen();
         document.addEventListener("keydown", keyDownHandler);
         document.addEventListener("keyup", keyUpHandler);
     }
-    return {registerEvents};
+    return { registerEvents };
 }
 let gui = new GUI();
 gui.registerEvents();

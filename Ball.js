@@ -1,47 +1,36 @@
-import {Cell} from "./Cell.js";
 import * as Global from "./Global.js";
 
-class Ball {
-    constructor(x, y, size = Global.BALL_SIZE, dx = Global.BALL_SPEED, dy = -Global.BALL_SPEED) {
-        this.cells = [];
-        for (let i = 0; i < size; i++) {
-            let row = [];
-            for (let j = 0; j < size; j++) {
-                row.push(new Cell(x + i, y + j));
-            }
-            this.cells.push(row);
-        }
-        this.dx = dx;
-        this.dy = dy;
+export default class Ball {
+    constructor(x, y, size = Global.BALL_SIZE, speedx = Global.BALL_SPEED, speedy = - Global.BALL_SPEED) {
+        this.x = x;
+        this.y = y;
         this.size = size;
+        this.speedx = speedx;
+        this.speedy = speedy;
     }
     getX() {
-        return this.dx;
+        return this.x;
     }
     getY() {
-        return this.dy;
+        return this.y;
+    }
+    getSpeedX() {
+        return this.speedx;
+    }
+    getSpeedY() {
+        return this.speedy;
     }
     getSize() {
         return this.size;
     }
-    getCells() {
-        return this.cells;
-    }
     changeXDirection() {
-        this.dx = -this.dx;
+        this.speedx = -this.speedx;
     }
     changeYDirection() {
-        this.dy = -this.dy;
+        this.speedy = -this.speedy;
     }
     updatePosition() {
-        this.cells.flat().forEach(c => {
-            let {x, y} = c;
-            x += this.dy;
-            y += this.dx;
-            c.setX(x);
-            c.setY(y);
-        });
+        this.x += this.speedx;
+        this.y += this.speedy;
     }
 }
-
-export {Ball};

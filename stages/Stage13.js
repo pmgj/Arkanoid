@@ -1,5 +1,4 @@
-import {Brick} from "../Brick.js";
-import * as Global from "../Global.js";
+import Brick from "../Brick.js";
 
 export function get() {
     let bricks = [];

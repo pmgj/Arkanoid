@@ -1,7 +1,6 @@
-import {Brick} from "../Brick.js";
-import {UnbreakableBrick} from "../UnbreakableBrick.js";
-import {ThreeHitBrick} from "../ThreeHitBrick.js";
-import * as Global from "../Global.js";
+import Brick from "../Brick.js";
+import UnbreakableBrick from "../UnbreakableBrick.js";
+import ThreeHitBrick from "../ThreeHitBrick.js";
 
 export function get() {
     let bricks = [];

@@ -1,11 +1,8 @@
-import {CellState} from "./CellState.js";
-import {Direction} from "./Direction.js";
-import {Cell} from "./Cell.js";
-import {Ball} from "./Ball.js";
-import {Brick} from "./Brick.js";
-import {Player} from "./Player.js";
+import Direction from "./Direction.js";
+import Ball from "./Ball.js";
+import Player from "./Player.js";
 import * as Global from "./Global.js";
-import {State} from "./State.js";
+import State from "./State.js";
 
 function Arkanoid() {
     let direction, player, ball, bricks, numOfBricks;
@@ -25,107 +22,63 @@ function Arkanoid() {
         numOfBricks = bricks.filter(b => b.getN() === Number.MAX_VALUE).length;
     }
     function createBall() {
-        let p = player.getCells()[0][Global.PLAYER_WIDTH - 2 * Global.BALL_SIZE];
-        ball = new Ball(p.getX() - Global.BALL_SIZE, p.getY());
+        ball = new Ball(player.getX() + Global.PLAYER_WIDTH - Global.PLAYER_SIDESIZE - 2 * Global.BALL_SIZE, player.getY() - Global.BALL_SIZE);
     }
     function createPlayer() {
-        let row = Global.ROWS - 3 * Global.PLAYER_HEIGHT, col = Math.floor((Global.COLS - Global.PLAYER_WIDTH) / 2);
+        let y = Global.ROWS - 3 * Global.PLAYER_HEIGHT, x = Math.floor((Global.COLS - Global.PLAYER_WIDTH) / 2);
         let lives = player ? player.getLives() : Global.PLAYER_LIVES;
-        player = new Player(row, col, Global.PLAYER_WIDTH, Global.PLAYER_HEIGHT, lives);
+        player = new Player(x, y, Global.PLAYER_WIDTH, Global.PLAYER_HEIGHT, lives);
     }
     function updateBoard() {
         let state = State.NONE;
         let changeXDir = false, changeYDir = false;
-        let bMatrix = ball.getCells();
-        let bCells = bMatrix.flat();
-        let dx = ball.getX(), dy = ball.getY();
+        let dx = ball.getSpeedX(), dy = ball.getSpeedY();
         // Verifica se a bola passou bateu no teto
-        if (bCells.some(c => c.getX() + dy <= 0)) {
+        if (ball.getY() + dy < 0) {
             changeYDir = true;
         }
         // Verifica se a bola passou bateu nas laterais
-        if (bCells.some(c => c.getY() + dx <= 0) || bCells.some(c => c.getY() + dx >= Global.COLS - 1)) {
+        if (ball.getX() + dx < 0 || ball.getX() + ball.getSize() + dx >= Global.COLS) {
             changeXDir = true;
         }
         // Verifica se a bola bateu em um tijolo
-        let hitBrick = false;
-        let bTop = bMatrix[0];
-        let bBottom = bMatrix[bMatrix.length - 1];
-        let bLeft = bMatrix.map(x => x[0]);
-        let bRight = bMatrix.map(x => x[x.length - 1]);
-        let bSides = [{bSide: bTop, x: 0, y: dy, xDir: false, yDir: true}, {bSide: bBottom, x: 0, y: dy, xDir: false, yDir: true}, {bSide: bLeft, x: dx, y: 0, xDir: true, yDir: false}, {bSide: bRight, x: dx, y: 0, xDir: true, yDir: false}];
-        for (let {bSide, x, y, xDir, yDir} of bSides) {
-            let tempBrick = null;
-            for (let {x: bx, y: by} of bSide) {
-                for (let i = 0; i < bricks.length; i++) {
-                    let brick = bricks[i];
-                    let cells = brick.getCells().flat();
-                    if (tempBrick !== brick && cells.some(c => c.equals(new Cell(bx + y, by + x)))) {
-                        tempBrick = brick;
-                        if (xDir) {
-                            changeXDir = true;
-                        }
-                        if (yDir) {
-                            changeYDir = true;
-                        }
-                        hitBrick = true;
-                        brick.hit();
-                        if (brick.getN() === 0) {
-                            bricks.splice(i, 1);
-                        }
-                    }
+        let bTop = ball.getY() - ball.getSize() + dy;
+        let bBottom = ball.getY() + ball.getSize() + dy;
+        let bLeft = ball.getX() - ball.getSize() + dx;
+        let bRight = ball.getX() + ball.getSize() + dx;
+        for (let i = 0, hit = false; i < bricks.length; i++) {
+            let brick = bricks[i];
+            if (bTop > brick.getY() && bTop < brick.getY() + Global.BRICK_HEIGHT && ball.getX() >= brick.getX() && ball.getX() <= brick.getX() + Global.BRICK_WIDTH) {
+                changeYDir = true;
+                hit = true;
+            }
+            if (bBottom > brick.getY() && bBottom < brick.getY() + Global.BRICK_HEIGHT && ball.getX() >= brick.getX() && ball.getX() <= brick.getX() + Global.BRICK_WIDTH) {
+                changeYDir = true;
+                hit = true;
+            }
+            if (bLeft > brick.getX() && bLeft < brick.getX() + Global.BRICK_WIDTH && ball.getY() >= brick.getY() && ball.getY() <= brick.getY() + Global.BRICK_HEIGHT) {
+                changeXDir = true;
+                hit = true;
+            }
+            if (bRight > brick.getX() && bRight < brick.getX() + Global.BRICK_WIDTH && ball.getY() >= brick.getY() && ball.getY() <= brick.getY() + Global.BRICK_HEIGHT) {
+                changeXDir = true;
+                hit = true;
+            }
+            if (hit) {
+                brick.hit();
+                if (brick.getN() === 0) {
+                    bricks.splice(i, 1);
                 }
             }
-        }
-        if (!hitBrick) {
-            let tl = bMatrix[0][0];
-            let tr = bMatrix[0][bMatrix[0].length - 1];
-            let bl = bMatrix[bMatrix.length - 1][0];
-            let br = bMatrix[bMatrix.length - 1][bMatrix[0].length - 1];
-            let edges = [tl, tr, bl, br];
-            for (let {x: bx, y: by} of edges) {
-                for (let i = 0; i < bricks.length; i++) {
-                    let brick = bricks[i];
-                    let cells = brick.getCells().flat();
-                    if (cells.some(c => c.equals(new Cell(bx + dy, by + dx)))) {
-                        changeXDir = true;
-                        changeYDir = true;
-                        brick.hit();
-                        if (brick.getN() === 0) {
-                            bricks.splice(i, 1);
-                        }
-                    }
-                }
-            }
+            hit = false;
         }
         // Verifica se a bola está colidindo com o barra do player
-        let pCells = player.getCells().flat();
-        let hitPlayer = false;
-        bSides = [{bSide: bBottom, condition: dy > 0, x: 0, y: dy, xDir: false, yDir: true}, {bSide: bLeft, condition: dx < 0, x: dx, y: 0, xDir: true, yDir: false}, {bSide: bRight, condition: dx > 0, x: dx, y: 0, xDir: true, yDir: false}];
-        for (let {bSide, condition, x, y, xDir, yDir} of bSides) {
-            for (let {x: bx, y: by} of bSide) {
-                if (condition && pCells.some(c => c.equals(new Cell(bx + y, by + x)))) {
-                    if (xDir) {
-                        changeXDir = true;
-                    }
-                    if (yDir) {
-                        changeYDir = true;
-                    }
-                    hitPlayer = true;
-                }
-            }
-        }
-        if (!hitPlayer) {
-            let tl = bMatrix[0][0];
-            let tr = bMatrix[0][bMatrix[0].length - 1];
-            let bl = bMatrix[bMatrix.length - 1][0];
-            let br = bMatrix[bMatrix.length - 1][bMatrix[0].length - 1];
-            let edges = [tl, tr, bl, br];
-            for (let {x, y} of edges) {
-                if (pCells.some(c => c.equals(new Cell(x + dy, y + dx)))) {
-                    changeXDir = true;
-                    changeYDir = true;
-                }
+        if (ball.getY() + ball.getSize() + dy > player.getY() && ball.getX() > player.getX() && ball.getX() < player.getX() + player.getWidth()) {
+            changeYDir = true;
+            let cond1 = dx > 0 && ball.getX() < player.getX() + Global.PLAYER_SIDESIZE;
+            let cond2 = dx < 0 && ball.getX() > player.getX() + player.getWidth() - Global.PLAYER_SIDESIZE;
+            if (cond1 || cond2) {
+                changeXDir = true;
             }
         }
         // Move a bola no eixo X e Y
@@ -141,7 +94,7 @@ function Arkanoid() {
             state = State.END_OF_STAGE;
         }
         // Perdeu uma vida
-        if (bCells.some(c => c.getX() >= Global.ROWS - 1)) {
+        if (ball.getY() > Global.ROWS) {
             state = State.LOST_LIVE;
             player.removeLive();
             createPlayer();
@@ -172,10 +125,10 @@ function Arkanoid() {
     function getStageIndex() {
         return stageIndex;
     }
-    return {movePlayerAndBall, loadStage, updateBoard, setDirection, getBall, getPlayer, getBricks, getStageIndex};
+    return { movePlayerAndBall, loadStage, updateBoard, setDirection, getBall, getPlayer, getBricks, getStageIndex };
 }
 
-export {Arkanoid};
+export { Arkanoid };
 
 //let a = new Arkanoid();
 //let p = a.loadStage();
